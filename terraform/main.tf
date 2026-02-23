@@ -21,6 +21,14 @@ resource "google_compute_subnetwork" "public_subnet" {
   ip_cidr_range = "10.0.0.0/24"
   region        = var.region
   network       = google_compute_network.wiz_vpc.id
+  private_ip_google_access = true # Fixes CKV_GCP_74
+
+  # Fixes CKV_GCP_26
+  log_config {
+    aggregation_interval = "INTERVAL_10_MIN"
+    flow_sampling        = 0.5
+    metadata             = "INCLUDE_ALL_METADATA"
+  }
 }
 
 # Private Subnet for GKE Cluster
@@ -30,6 +38,13 @@ resource "google_compute_subnetwork" "private_subnet" {
   region                   = var.region
   network                  = google_compute_network.wiz_vpc.id
   private_ip_google_access = true
+
+  # Fixes CKV_GCP_26
+  log_config {
+    aggregation_interval = "INTERVAL_10_MIN"
+    flow_sampling        = 0.5
+    metadata             = "INCLUDE_ALL_METADATA"
+  }
 }
 
 # Cloud Router & NAT (Required for Private GKE Nodes to pull internet images)
@@ -193,6 +208,12 @@ resource "google_container_node_pool" "primary_nodes" {
   location   = var.zone
   cluster    = google_container_cluster.wiz_cluster.name
   node_count = 1
+
+  # Fixes CKV_GCP_9 and CKV_GCP_10
+  management {
+    auto_repair  = true 
+    auto_upgrade = true 
+  }
 
   node_config {
     machine_type = "e2-medium"
