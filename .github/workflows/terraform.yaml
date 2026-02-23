@@ -1,0 +1,35 @@
+name: "1. Deploy Infrastructure (IaC)"
+
+on:
+  # Allows you to trigger this manually from the GitHub Actions UI
+  workflow_dispatch:
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      # Fulfills the requirement: "scanning the IaC code... prior to deployment"
+      - name: Security Scan IaC with Checkov
+        uses: bridgecrewio/checkov-action@master
+        with:
+          directory: terraform/ # Assuming your TF files are in a 'terraform' folder
+          soft_fail: true       # Flags issues but doesn't stop the pipeline
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: '${{ secrets.GCP_CREDENTIALS }}'
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+
+      - name: Terraform Init
+        run: terraform init
+        working-directory: terraform/
+
+      - name: Terraform Apply
+        run: terraform apply -auto-approve
+        working-directory: terraform/
