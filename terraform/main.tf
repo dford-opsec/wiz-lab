@@ -79,6 +79,12 @@ resource "google_storage_bucket" "db_backups" {
   name          = "wiz-db-backups-${var.project_id}-${random_id.bucket_suffix.hex}"
   location      = "US"
   force_destroy = true
+  versioning {
+    enabled = true
+  {
+  logging {
+    log_bucket = "wiz-db-backups-${var.project_id}-${random_id.bucket_suffix.hex}"
+  }
 }
 
 resource "google_storage_bucket_iam_member" "public_read" {
@@ -233,7 +239,7 @@ resource "google_container_node_pool" "primary_nodes" {
 
     shielded_instance_config {
       enable_secure_boot = true
-      enable_vtpm        = true
+      enable_integrity_monitoring = true
     }
 
     workload_metadata_config {
