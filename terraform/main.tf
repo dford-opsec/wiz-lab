@@ -81,12 +81,11 @@ resource "google_storage_bucket" "db_backups" {
   force_destroy = true
   versioning {
     enabled = true
-  {
+  }
   logging {
     log_bucket = "wiz-db-backups-${var.project_id}-${random_id.bucket_suffix.hex}"
   }
 }
-
 resource "google_storage_bucket_iam_member" "public_read" {
   bucket = google_storage_bucket.db_backups.name
   role   = "roles/storage.objectViewer"
