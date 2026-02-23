@@ -145,6 +145,17 @@ resource "google_compute_instance" "mongodb_vm" {
     access_config {} # Grants Public IP
   }
 
+  # Fixes CKV_GCP_39: Shielded VM
+  shielded_instance_config {
+    enable_secure_boot          = true
+    enable_vtpm                 = true
+    enable_integrity_monitoring = true
+  }
+
+  # Fixes CKV_GCP_32: Block Project-wide SSH keys
+  metadata = {
+    block-project-ssh-keys = "true"
+  }
   service_account {
     email  = google_service_account.vulnerable_sa.email
     scopes = ["cloud-platform"]
@@ -200,6 +211,38 @@ resource "google_container_cluster" "wiz_cluster" {
     enable_private_nodes    = true
     enable_private_endpoint = false
     master_ipv4_cidr_block  = "172.16.0.0/28"
+
+    # Fixes CKV_GCP_12: Enable Network Policy
+  network_policy {
+    enabled = true
+  }
+
+  # Fixes CKV_GCP_23: Alias IP ranges
+  ip_allocation_policy {
+    cluster_ipv4_cidr_block  = "/14"
+    services_ipv4_cidr_block = "/20"
+  }
+
+  # Fixes CKV_GCP_69: GKE Metadata Server
+  workload_identity_config {
+    workload_pool = "${var.project_id}.svc.id.goog"
+  }
+
+  # Fixes CKV_GCP_13: Disable client cert auth
+  master_auth {
+    client_certificate_config {
+      issue_client_certificate = false
+    }
+   }
+  # Fixes CKV_GCP_70: Ensure GKE Release Channel is set
+  release_channel {
+    channel = "REGULAR"
+  }
+
+  # Fixes CKV_GCP_69: Enable GKE Metadata Server (Cluster level)
+  workload_identity_config {
+    workload_pool = "${var.project_id}.svc.id.goog"
+ 
   }
 }
 
@@ -209,19 +252,31 @@ resource "google_container_node_pool" "primary_nodes" {
   cluster    = google_container_cluster.wiz_cluster.name
   node_count = 1
 
-  # Fixes CKV_GCP_9 and CKV_GCP_10
+  node_config {
+    machine_type = "e2-medium"
+    spot         = true
+      # Fixes CKV_GCP_9 and CKV_GCP_10
   management {
     auto_repair  = true 
     auto_upgrade = true 
   }
 
-  node_config {
-    machine_type = "e2-medium"
-    spot         = true
+  # Fixes CKV_GCP_68: Ensure Secure Boot for Shielded GKE Nodes is Enabled
+    shielded_instance_config {
+      enable_secure_boot = true
+      enable_vtpm        = true
+    }
+
+    # Fixes CKV_GCP_69: Ensure the GKE Metadata Server is Enabled (Node level)
+    workload_metadata_config {
+      mode = "GKE_METADATA"
+    }
+
     oauth_scopes = [
       "https://www.googleapis.com/auth/logging.write",
       "https://www.googleapis.com/auth/monitoring",
       "https://www.googleapis.com/auth/devstorage.read_only"
+      "https://www.googleapis.com/auth/cloud-platform"
     ]
   }
 }
