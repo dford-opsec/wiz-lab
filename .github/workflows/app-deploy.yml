@@ -33,6 +33,9 @@ jobs:
           image-ref: ${{ env.IMAGE_NAME }}
           format: 'table'
           exit-code: '0' # Soft fail so the vulnerable app still deploys for the demo
+          ignore-unfixed: true               # Only flag vulnerabilities that actually have a patch available
+          vuln-type: 'os,library'            # Scans both the base OS (Linux) and Go packages
+          # severity: 'CRITICAL,HIGH'          # We only care about the big ones          
 
       - name: Push Docker Image to GCP
         run: docker push ${{ env.IMAGE_NAME }}
