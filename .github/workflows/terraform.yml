@@ -18,6 +18,15 @@ jobs:
           directory: terraform/ # Assuming your TF files are in a 'terraform' folder
           soft_fail: true       # Flags issues but doesn't stop the pipeline
 
+      - name: Security Scan IaC with Trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'config'              # Tells Trivy to scan IaC (Terraform) instead of a container
+          scan-ref: 'terraform/'           # Points to your folder with the .tf files
+          format: 'table'                  # Prints a nice, readable table in the GitHub Actions logs
+          exit-code: '0'                   # '0' ensures the pipeline doesn't fail and stop the deployment
+          severity: 'CRITICAL,HIGH,MEDIUM' # Choose which level of vulnerabilities to report
+
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v1
         with:
