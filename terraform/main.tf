@@ -265,12 +265,12 @@ resource "google_project_iam_audit_config" "gcs_audit_logs" {
   audit_log_config { log_type = "ADMIN_READ" }
 }
 
-resource "google_project_organization_policy" "disable_sa_keys" {
-  project    = var.project_id
-  constraint = "iam.disableServiceAccountKeyCreation"
-  boolean_policy {
-    enforced = true
-  }
+#resource "google_project_organization_policy" "disable_sa_keys" {
+ # project    = var.project_id
+  # constraint = "iam.disableServiceAccountKeyCreation"
+  # boolean_policy {
+   # enforced = true
+  # }
 }
 
 resource "google_logging_metric" "ssh_login_metric" {
