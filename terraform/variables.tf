@@ -1,3 +1,8 @@
+provider "google" {
+  project = var.project_id
+  region = var.region
+}
+
 variable "project_id" {
   description = "The Google Cloud Project ID provided by CloudLabs"
   type        = string
