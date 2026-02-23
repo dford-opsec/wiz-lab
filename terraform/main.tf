@@ -152,14 +152,14 @@ resource "google_compute_instance" "mongodb_vm" {
     sleep 10
 
     # Create admin user
-    mongo admin --eval 'db.createUser({user: "wizadmin", pwd: "WizPassword123!", roles: [{role: "userAdminAnyDatabase", db: "admin"}, "readWriteAnyDatabase"]})'
+    mongo admin --eval 'db.createUser({user: "admin", pwd: "Password123!", roles: [{role: "userAdminAnyDatabase", db: "admin"}, "readWriteAnyDatabase"]})'
 
     # Create backup script
     cat << 'EOF' > /usr/local/bin/backup_mongo.sh
     #!/bin/bash
     TIMESTAMP=$(date +"%F")
     BACKUP_DIR="/tmp/mongodump-$TIMESTAMP"
-    mongodump --username wizadmin --password WizPassword123! --authenticationDatabase admin --out $BACKUP_DIR
+    mongodump --username admin --password Password123! --authenticationDatabase admin --out $BACKUP_DIR
     gsutil cp -r $BACKUP_DIR gs://${google_storage_bucket.db_backups.name}/
     rm -rf $BACKUP_DIR
     EOF
