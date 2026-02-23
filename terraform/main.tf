@@ -2,7 +2,7 @@
 # 0. PROVIDER CONFIGURATION
 # ==============================================================================
 provider "google" {
-  project = var.project_id
+  project = trimspace(var.project_id)
   region  = var.region
   zone    = var.zone
 }
@@ -66,7 +66,7 @@ resource "google_service_account" "vulnerable_sa" {
 }
 
 resource "google_project_iam_member" "vulnerable_sa_compute_admin" {
-  project = var.project_id
+  project = trimspace(var.project_id)
   role    = "roles/compute.admin"
   member  = "serviceAccount:${google_service_account.vulnerable_sa.email}"
 }
@@ -258,7 +258,7 @@ resource "google_container_node_pool" "primary_nodes" {
 # 6. CLOUD NATIVE SECURITY TOOLS
 # ==============================================================================
 resource "google_project_iam_audit_config" "gcs_audit_logs" {
-  project = var.project_id
+  project = trimspace(var.project_id)
   service = "storage.googleapis.com"
   audit_log_config { log_type = "DATA_READ" }
   audit_log_config { log_type = "DATA_WRITE" }
@@ -266,7 +266,7 @@ resource "google_project_iam_audit_config" "gcs_audit_logs" {
 }
 
 #resource "google_project_organization_policy" "disable_sa_keys" {
- # project    = var.project_id
+ # project    = trimspace(var.project_id)
   # constraint = "iam.disableServiceAccountKeyCreation"
   # boolean_policy {
    # enforced = true
