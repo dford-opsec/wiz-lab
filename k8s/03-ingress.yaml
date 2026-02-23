@@ -1,0 +1,30 @@
+# k8s/03-ingress.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: wiz-webapp-svc
+spec:
+  type: NodePort
+  selector:
+    app: wiz-webapp
+  ports:
+  - port: 80
+    targetPort: 8080 # UPDATED from the README
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: wiz-webapp-ingress
+  annotations:
+    kubernetes.io/ingress.class: "gce"
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: wiz-webapp-svc
+            port:
+              number: 80

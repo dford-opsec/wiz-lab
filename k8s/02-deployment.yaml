@@ -1,0 +1,28 @@
+# k8s/02-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wiz-webapp
+  labels:
+    app: wiz-webapp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: wiz-webapp
+  template:
+    metadata:
+      labels:
+        app: wiz-webapp
+    spec:
+      serviceAccountName: wiz-app-sa # Fulfills cluster-wide admin requirement
+      containers:
+      - name: webapp
+        image: gcr.io/clgcporg10-181/wiz-webapp:latest
+        ports:
+        - containerPort: 8080 # UPDATED from the README
+        env:
+        - name: MONGODB_URI # Configures MongoDB access via K8s env var
+          value: "mongodb://admin:Password123!@<MONGODB_VM_INTERNAL_IP>:27017/todo?authSource=admin"
+        - name: SECRET_KEY  # ADDED from the README
+          value: "UzNjdXJlUEBzc3cwcmQh" # In production this should be a K8s Secret, but plaintext is fine for the demo

@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: wiz-app-sa
+  namespace: default
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: wiz-app-cluster-admin-binding
+subjects:
+- kind: ServiceAccount
+  name: wiz-app-sa
+  namespace: default
+roleRef:
+  kind: ClusterRole
+  name: cluster-admin # Fulfills the "cluster-wide kubernetes admin role" requirement
+  apiGroup: rbac.authorization.k8s.io
