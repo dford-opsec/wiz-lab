@@ -1,0 +1,48 @@
+name: "2. Build, Scan, and Deploy App"
+
+on:
+  workflow_dispatch:
+
+env:
+  # Standard GCR path. If using Artifact Registry, format is: region-docker.pkg.dev/project/repo/image
+  IMAGE_NAME: gcr.io/${{ secrets.GCP_PROJECT_ID }}/wiz-webapp:latest 
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: '${{ secrets.GCP_CREDENTIALS }}'
+
+      - name: Configure Docker for GCP
+        run: gcloud auth configure-docker
+
+      - name: Build Docker Image
+        # Assuming your Dockerfile and app code are in an 'app' folder
+        run: docker build -t ${{ env.IMAGE_NAME }} ./app 
+
+      # Fulfills the requirement: "scanning the... Container Image prior to deployment"
+      - name: Security Scan Image with Trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ env.IMAGE_NAME }}
+          format: 'table'
+          exit-code: '0' # Soft fail so the vulnerable app still deploys for the demo
+
+      - name: Push Docker Image to GCP
+        run: docker push ${{ env.IMAGE_NAME }}
+
+      - name: Get GKE Cluster Credentials
+        uses: google-github-actions/get-gke-credentials@v1
+        with:
+          cluster_name: wiz-private-cluster
+          location: us-central1-a
+
+      - name: Deploy Manifests to GKE
+        # Assuming your Kubernetes YAML files are in a 'k8s' folder
+        run: kubectl apply -f ./k8s/
