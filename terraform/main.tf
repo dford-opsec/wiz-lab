@@ -271,7 +271,7 @@ resource "google_project_iam_audit_config" "gcs_audit_logs" {
   # boolean_policy {
    # enforced = true
   # }
-}
+#}
 
 resource "google_logging_metric" "ssh_login_metric" {
   name        = "mongo_vm_ssh_logins"
