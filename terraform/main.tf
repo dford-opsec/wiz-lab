@@ -15,15 +15,13 @@ resource "google_compute_network" "wiz_vpc" {
   auto_create_subnetworks = false
 }
 
-# Public Subnet for MongoDB VM
 resource "google_compute_subnetwork" "public_subnet" {
-  name          = "wiz-public-subnet"
-  ip_cidr_range = "10.0.0.0/24"
-  region        = var.region
-  network       = google_compute_network.wiz_vpc.id
-  private_ip_google_access = true # Fixes CKV_GCP_74
+  name                     = "wiz-public-subnet"
+  ip_cidr_range            = "10.0.0.0/24"
+  region                   = var.region
+  network                  = google_compute_network.wiz_vpc.id
+  private_ip_google_access = true
 
-  # Fixes CKV_GCP_26
   log_config {
     aggregation_interval = "INTERVAL_10_MIN"
     flow_sampling        = 0.5
@@ -31,7 +29,6 @@ resource "google_compute_subnetwork" "public_subnet" {
   }
 }
 
-# Private Subnet for GKE Cluster
 resource "google_compute_subnetwork" "private_subnet" {
   name                     = "wiz-private-subnet"
   ip_cidr_range            = "10.0.1.0/24"
@@ -39,7 +36,6 @@ resource "google_compute_subnetwork" "private_subnet" {
   network                  = google_compute_network.wiz_vpc.id
   private_ip_google_access = true
 
-  # Fixes CKV_GCP_26
   log_config {
     aggregation_interval = "INTERVAL_10_MIN"
     flow_sampling        = 0.5
@@ -47,7 +43,6 @@ resource "google_compute_subnetwork" "private_subnet" {
   }
 }
 
-# Cloud Router & NAT (Required for Private GKE Nodes to pull internet images)
 resource "google_compute_router" "router" {
   name    = "wiz-router"
   region  = var.region
@@ -65,8 +60,6 @@ resource "google_compute_router_nat" "nat" {
 # ==============================================================================
 # 2. INTENTIONALLY VULNERABLE CONFIGURATIONS (Wiz Exercise Requirements)
 # ==============================================================================
-
-# Overly Permissive Service Account (Compute Admin)
 resource "google_service_account" "vulnerable_sa" {
   account_id   = "mongodb-vulnerable-sa"
   display_name = "Vulnerable Service Account for MongoDB VM"
@@ -78,7 +71,6 @@ resource "google_project_iam_member" "vulnerable_sa_compute_admin" {
   member  = "serviceAccount:${google_service_account.vulnerable_sa.email}"
 }
 
-# Publicly Readable Cloud Storage Bucket for Backups
 resource "random_id" "bucket_suffix" {
   byte_length = 4
 }
@@ -98,8 +90,6 @@ resource "google_storage_bucket_iam_member" "public_read" {
 # ==============================================================================
 # 3. FIREWALL RULES
 # ==============================================================================
-
-# SSH exposed to the public internet
 resource "google_compute_firewall" "allow_ssh_public" {
   name    = "allow-ssh-public"
   network = google_compute_network.wiz_vpc.name
@@ -111,7 +101,6 @@ resource "google_compute_firewall" "allow_ssh_public" {
   target_tags   = ["mongodb-vm"]
 }
 
-# Restrict MongoDB access to the GKE private subnet only
 resource "google_compute_firewall" "allow_mongodb_from_gke" {
   name    = "allow-mongodb-from-gke"
   network = google_compute_network.wiz_vpc.name
@@ -134,7 +123,7 @@ resource "google_compute_instance" "mongodb_vm" {
 
   boot_disk {
     initialize_params {
-      image = "ubuntu-os-cloud/ubuntu-1804-lts" # 1+ year outdated Linux OS
+      image = "ubuntu-os-cloud/ubuntu-1804-lts"
       size  = 20
     }
   }
@@ -142,20 +131,19 @@ resource "google_compute_instance" "mongodb_vm" {
   network_interface {
     network    = google_compute_network.wiz_vpc.name
     subnetwork = google_compute_subnetwork.public_subnet.name
-    access_config {} # Grants Public IP
+    access_config {}
   }
 
-  # Fixes CKV_GCP_39: Shielded VM
   shielded_instance_config {
     enable_secure_boot          = true
     enable_vtpm                 = true
     enable_integrity_monitoring = true
   }
 
-  # Fixes CKV_GCP_32: Block Project-wide SSH keys
   metadata = {
     block-project-ssh-keys = "true"
   }
+
   service_account {
     email  = google_service_account.vulnerable_sa.email
     scopes = ["cloud-platform"]
@@ -163,24 +151,16 @@ resource "google_compute_instance" "mongodb_vm" {
 
   metadata_startup_script = <<-EOT
     #!/bin/bash
-    # Install MongoDB 4.4
     wget -qO - https://www.mongodb.org/static/pgp/server-4.4.asc | sudo apt-key add -
     echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu bionic/mongodb-org/4.4 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-4.4.list
     sudo apt-get update
     sudo apt-get install -y mongodb-org=4.4.29 mongodb-org-server=4.4.29 mongodb-org-shell=4.4.29 mongodb-org-mongos=4.4.29 mongodb-org-tools=4.4.29
-
-    # Configure auth and bind IP
     sudo sed -i 's/bindIp: 127.0.0.1/bindIp: 0.0.0.0/' /etc/mongod.conf
     echo -e "security:\n  authorization: enabled" | sudo tee -a /etc/mongod.conf
-
     sudo systemctl enable mongod
     sudo systemctl start mongod
     sleep 10
-
-    # Create admin user
     mongo admin --eval 'db.createUser({user: "admin", pwd: "Password123!", roles: [{role: "userAdminAnyDatabase", db: "admin"}, "readWriteAnyDatabase"]})'
-
-    # Create backup script
     cat << 'EOF' > /usr/local/bin/backup_mongo.sh
     #!/bin/bash
     TIMESTAMP=$(date +"%F")
@@ -189,7 +169,6 @@ resource "google_compute_instance" "mongodb_vm" {
     gsutil cp -r $BACKUP_DIR gs://${google_storage_bucket.db_backups.name}/
     rm -rf $BACKUP_DIR
     EOF
-
     chmod +x /usr/local/bin/backup_mongo.sh
     echo "0 2 * * * root /usr/local/bin/backup_mongo.sh" | sudo tee /etc/cron.d/mongo_backup
   EOT
@@ -211,40 +190,31 @@ resource "google_container_cluster" "wiz_cluster" {
     enable_private_nodes    = true
     enable_private_endpoint = false
     master_ipv4_cidr_block  = "172.16.0.0/28"
+  } # Closing private_cluster_config
 
-    # Fixes CKV_GCP_12: Enable Network Policy
   network_policy {
     enabled = true
   }
 
-  # Fixes CKV_GCP_23: Alias IP ranges
   ip_allocation_policy {
     cluster_ipv4_cidr_block  = "/14"
     services_ipv4_cidr_block = "/20"
   }
 
-  # Fixes CKV_GCP_69: GKE Metadata Server
   workload_identity_config {
     workload_pool = "${var.project_id}.svc.id.goog"
   }
 
-  # Fixes CKV_GCP_13: Disable client cert auth
   master_auth {
     client_certificate_config {
       issue_client_certificate = false
     }
-   }
-  # Fixes CKV_GCP_70: Ensure GKE Release Channel is set
+  }
+
   release_channel {
     channel = "REGULAR"
   }
-
-  # Fixes CKV_GCP_69: Enable GKE Metadata Server (Cluster level)
-  workload_identity_config {
-    workload_pool = "${var.project_id}.svc.id.goog"
- 
-  }
-}
+} # Closing google_container_cluster
 
 resource "google_container_node_pool" "primary_nodes" {
   name       = "wiz-node-pool"
@@ -252,22 +222,20 @@ resource "google_container_node_pool" "primary_nodes" {
   cluster    = google_container_cluster.wiz_cluster.name
   node_count = 1
 
+  management {
+    auto_repair  = true
+    auto_upgrade = true
+  }
+
   node_config {
     machine_type = "e2-medium"
     spot         = true
-      # Fixes CKV_GCP_9 and CKV_GCP_10
-  management {
-    auto_repair  = true 
-    auto_upgrade = true 
-  }
 
-  # Fixes CKV_GCP_68: Ensure Secure Boot for Shielded GKE Nodes is Enabled
     shielded_instance_config {
       enable_secure_boot = true
       enable_vtpm        = true
     }
 
-    # Fixes CKV_GCP_69: Ensure the GKE Metadata Server is Enabled (Node level)
     workload_metadata_config {
       mode = "GKE_METADATA"
     }
@@ -284,8 +252,6 @@ resource "google_container_node_pool" "primary_nodes" {
 # ==============================================================================
 # 6. CLOUD NATIVE SECURITY TOOLS
 # ==============================================================================
-
-# Audit Logging (Control Plane)
 resource "google_project_iam_audit_config" "gcs_audit_logs" {
   project = var.project_id
   service = "storage.googleapis.com"
@@ -294,7 +260,6 @@ resource "google_project_iam_audit_config" "gcs_audit_logs" {
   audit_log_config { log_type = "ADMIN_READ" }
 }
 
-# Preventative Control: Block Service Account Key Creation
 resource "google_project_organization_policy" "disable_sa_keys" {
   project    = var.project_id
   constraint = "iam.disableServiceAccountKeyCreation"
@@ -303,7 +268,6 @@ resource "google_project_organization_policy" "disable_sa_keys" {
   }
 }
 
-# Detective Control: Log-based metric & alert for SSH access to Mongo VM
 resource "google_logging_metric" "ssh_login_metric" {
   name        = "mongo_vm_ssh_logins"
   description = "Detects SSH logins to the vulnerable MongoDB VM"
