@@ -47,16 +47,17 @@ jobs:
           location: us-central1-a
 
       - name: Deploy Manifests to GKE
-        run: |
+      run: |
         # 1. Fetch the Internal IP of your MongoDB VM
-        MONGODB_IP=$(gcloud compute instances describe mongodb-vm \
+        MONGODB_IP=$(gcloud compute instances describe wiz-mongodb-vm \
           --zone us-central1-a \
           --format='get(networkInterfaces[0].networkIP)')
         
-        echo "Found MongoDB IP: $MONGODB_IP"
+        echo "Injecting IP: $MONGODB_IP into deployment manifest"
 
-        # 2. Replace the placeholder in the YAML file
-        sed -i "s/REPLACE_ME_WITH_IP/$MONGODB_IP/g" k8s/02-deployment.yaml
+        # 2. Use sed to replace the placeholder including the brackets
+        # We use the @ symbol as a delimiter just in case the URI has slashes
+        sed -i "s|<MONGODB_VM_INTERNAL_IP>|$MONGODB_IP|g" k8s/02-deployment.yml
 
         # 3. Apply the updated manifest
         kubectl apply -f k8s/
