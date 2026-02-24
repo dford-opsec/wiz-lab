@@ -1,4 +1,4 @@
-name: "3. Remove App from GKE"
+name: "4. Remove App from GKE"
 
 on:
   # Allows you to trigger this manually from the GitHub Actions UI
