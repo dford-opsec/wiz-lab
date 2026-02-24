@@ -1,4 +1,4 @@
-name: "2. Teardown Infrastructure"
+name: "3. Teardown Infrastructure"
 
 on:
   workflow_dispatch: # This makes it a manual button in GitHub Actions
