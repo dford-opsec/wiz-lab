@@ -117,6 +117,20 @@ resource "google_compute_firewall" "allow_mongodb_from_gke" {
   target_tags   = ["mongodb-vm"]
 }
 
+# NEW: Required for Private GKE Cluster Creation
+resource "google_compute_firewall" "allow_gke_master_to_nodes" {
+  name    = "allow-gke-master-to-nodes"
+  network = google_compute_network.wiz_vpc.name
+
+  allow {
+    protocol = "tcp"
+    ports    = ["443", "10250"]
+  }
+
+  # This matches the master_ipv4_cidr_block in your google_container_cluster resource
+  source_ranges = ["172.16.0.0/28"] 
+}
+
 # ==============================================================================
 # 4. COMPUTE ENGINE: VULNERABLE MONGODB VM
 # ==============================================================================
