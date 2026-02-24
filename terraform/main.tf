@@ -156,16 +156,31 @@ resource "google_compute_instance" "mongodb_vm" {
 
   metadata_startup_script = <<-EOT
     #!/bin/bash
+    
+    # 1. Fix the broken Debian backports repo so apt-get update works
+    sudo sed -i '/bullseye-backports/ s/^/#/' /etc/apt/sources.list
+
+    # 2. Add the MongoDB 4.4 repo (Using 'buster' because 4.4 pre-dates 'bullseye')
     wget -qO - https://www.mongodb.org/static/pgp/server-4.4.asc | sudo apt-key add -
-    echo "deb http://repo.mongodb.org/apt/debian bullseye/mongodb-org/4.4 main" | sudo tee /etc/apt/sources.list.d/mongodb-org-4.4.list
+    echo "deb http://repo.mongodb.org/apt/debian buster/mongodb-org/4.4 main" | sudo tee /etc/apt/sources.list.d/mongodb-org-4.4.list
+    
+    # 3. Update and Install specific vulnerable versions
     sudo apt-get update
     sudo apt-get install -y mongodb-org=4.4.29 mongodb-org-server=4.4.29 mongodb-org-shell=4.4.29 mongodb-org-mongos=4.4.29 mongodb-org-tools=4.4.29
+    
+    # 4. Configure network and security
     sudo sed -i 's/bindIp: 127.0.0.1/bindIp: 0.0.0.0/' /etc/mongod.conf
     echo -e "security:\n  authorization: enabled" | sudo tee -a /etc/mongod.conf
+    
+    # 5. Start the service
     sudo systemctl enable mongod
     sudo systemctl start mongod
     sleep 10
+    
+    # 6. Create Admin User
     mongo admin --eval 'db.createUser({user: "admin", pwd: "Password123!", roles: [{role: "userAdminAnyDatabase", db: "admin"}, "readWriteAnyDatabase"]})'
+    
+    # 7. Setup automated backups
     cat << 'EOF' > /usr/local/bin/backup_mongo.sh
     #!/bin/bash
     TIMESTAMP=$(date +"%F")
