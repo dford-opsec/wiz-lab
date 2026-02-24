@@ -288,8 +288,21 @@ resource "google_logging_metric" "ssh_login_metric" {
   }
 }
 
+# ------------------------------------------------------------------------------
+# Forces Terraform to wait 60 seconds for the metric to propagate in GCP
+# ------------------------------------------------------------------------------
+resource "time_sleep" "wait_for_metric" {
+  depends_on = [google_logging_metric.ssh_login_metric]
+
+  create_duration = "60s"
+}
+
 resource "google_monitoring_alert_policy" "ssh_alert" {
   display_name = "Alert: SSH Access to MongoDB VM Detected"
+  
+  # NEW: Tell the alert it MUST wait for the timer to finish
+  depends_on   = [time_sleep.wait_for_metric] 
+
   combiner     = "OR"
   conditions {
     display_name = "SSH Login Spike"
