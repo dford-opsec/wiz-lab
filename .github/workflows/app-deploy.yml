@@ -47,5 +47,16 @@ jobs:
           location: us-central1-a
 
       - name: Deploy Manifests to GKE
-        # Assuming your Kubernetes YAML files are in a 'k8s' folder
-        run: kubectl apply -f ./k8s/
+        run: |
+        # 1. Fetch the Internal IP of your MongoDB VM
+        MONGODB_IP=$(gcloud compute instances describe mongodb-vm \
+          --zone us-central1-a \
+          --format='get(networkInterfaces[0].networkIP)')
+        
+        echo "Found MongoDB IP: $MONGODB_IP"
+
+        # 2. Replace the placeholder in the YAML file
+        sed -i "s/REPLACE_ME_WITH_IP/$MONGODB_IP/g" k8s/02-deployment.yaml
+
+        # 3. Apply the updated manifest
+        kubectl apply -f k8s/
