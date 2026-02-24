@@ -1,0 +1,27 @@
+name: "3. Remove App from GKE"
+
+on:
+  # Allows you to trigger this manually from the GitHub Actions UI
+  workflow_dispatch:
+
+jobs:
+  teardown:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: '${{ secrets.GCP_CREDENTIALS }}'
+
+      - name: Get GKE Cluster Credentials
+        uses: google-github-actions/get-gke-credentials@v1
+        with:
+          cluster_name: wiz-private-cluster
+          location: us-central1-a
+
+      - name: Delete Manifests from GKE
+        # This reads the exact same K8s YAML files used to deploy, but tells the cluster to delete those resources instead
+        run: kubectl delete -f ./k8s/ --ignore-not-found=true
