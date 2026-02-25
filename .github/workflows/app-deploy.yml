@@ -45,7 +45,29 @@ jobs:
         with:
           cluster_name: wiz-private-cluster
           location: us-central1-a
+          
+      - name: Create Required Firewall Rules
+        run: |
+          # 1. Find the dynamic network name from the running VM
+          MY_NET=$(gcloud compute instances list --limit=1 --format="value(networkInterfaces[0].network.basename())")
+          echo "Targeting network: $MY_NET"
 
+          # 2. Allow Load Balancer Health Checks (for the Ingress)
+          gcloud compute firewall-rules create allow-lb-health-checks \
+            --network=$MY_NET \
+            --action=allow \
+            --direction=ingress \
+            --source-ranges=130.211.0.0/22,35.191.0.0/16 \
+            --rules=tcp || echo "LB firewall rule already exists, skipping."
+
+          # 3. Allow K8s Pods to talk to MongoDB on port 27017
+          gcloud compute firewall-rules create allow-internal-mongodb \
+            --network=$MY_NET \
+            --action=allow \
+            --direction=ingress \
+            --source-ranges=10.0.0.0/8 \
+            --rules=tcp:27017 || echo "MongoDB firewall rule already exists, skipping."
+            
       - name: Deploy Manifests to GKE
         run: |
           # 1. Fetch the Internal IP of your MongoDB VM
