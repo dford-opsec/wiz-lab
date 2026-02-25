@@ -6,6 +6,7 @@ metadata:
 spec:
   healthCheck:
     checkIntervalSec: 15
+    timeoutSec: 10      # THIS IS THE FIX (10 is less than 15)
     port: 8080
     type: HTTP
-    requestPath: /login # Tells the load balancer to check this valid path
+    requestPath: /login # Probing a path that actually exists
