@@ -35,7 +35,7 @@ jobs:
           exit-code: '0' # Soft fail so the vulnerable app still deploys for the demo
           ignore-unfixed: true               # Only flag vulnerabilities that actually have a patch available
           vuln-type: 'os,library'            # Scans both the base OS (Linux) and Go packages
-          # severity: 'CRITICAL,HIGH'          # We only care about the big ones          
+          # severity: 'CRITICAL,HIGH'        # We only care about the big ones          
 
       - name: Push Docker Image to GCP
         run: docker push ${{ env.IMAGE_NAME }}
@@ -61,5 +61,8 @@ jobs:
           # 3. Verify the change (Optional, helpful for debugging)
           cat k8s/02-deployment.yml | grep MONGODB_URI
 
-          # 4. Apply the updated manifest
-          kubectl apply -f k8s/
+          # 4. ACTUALLY DEPLOY THE FILES
+          kubectl apply -f k8s/01-rbac.yml
+          kubectl apply -f k8s/02-deployment.yml
+          kubectl apply -f k8s/04-backendconfig.yml
+          kubectl apply -f k8s/03-ingress.yml
