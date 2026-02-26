@@ -101,6 +101,12 @@ resource "google_storage_bucket_iam_member" "public_read" {
   role   = "roles/storage.objectViewer"
   member = "allUsers"
 }
+# Grant the VM Service Account permission to upload to the backup bucket
+resource "google_storage_bucket_iam_member" "vm_backup_upload" {
+  bucket = google_storage_bucket.db_backups.name
+  role   = "roles/storage.objectCreator"
+  member = "serviceAccount:${google_service_account.vulnerable_sa.email}"
+}
 
 # ==============================================================================
 # 3. FIREWALL RULES
