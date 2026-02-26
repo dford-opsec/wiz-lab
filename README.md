@@ -44,6 +44,10 @@ flowchart LR
     LB -->|"Routes Traffic"| GKE
     GKE -->|"TCP 27017 (Internal)"| VM
     VM -->|"Automated Script"| Bucket
+    
+    %% Invisible spacer to prevent UI controls from overlapping the rightmost node
+    Bucket ~~~ Spacer[ ]
+    style Spacer fill:none,stroke:none
 ```
 
 
