@@ -55,17 +55,17 @@ Intentional Security Misconfigurations
 
 To fulfill the requirements of the technical exercise, the following vulnerabilities have been purposefully injected into the environment:
 
-Exposed Infrastructure: Port 22 (SSH) on the MongoDB Compute Engine VM is exposed to the public internet (0.0.0.0/0).
+    - Exposed Infrastructure: Port 22 (SSH) on the MongoDB Compute Engine VM is exposed to the public internet (0.0.0.0/0).
 
-Outdated Software: The database VM runs a 1+ year outdated version of Linux and MongoDB (v4.4).
+    - Outdated Software: The database VM runs a 1+ year outdated version of Linux and MongoDB (v4.4).
 
-Data Exposure: The Cloud Storage bucket containing automated daily database backups is configured for public read and listing (allUsers).
+    - Data Exposure: The Cloud Storage bucket containing automated daily database backups is configured for public read and listing (allUsers).
 
-Overly Permissive Identities: * The MongoDB VM is granted overly permissive CSP permissions (Editor/Compute Admin).
+    - Overly Permissive Identities: * The MongoDB VM is granted overly permissive CSP permissions (Editor/Compute Admin).
 
-The containerized web application in GKE is assigned a cluster-wide Kubernetes admin role.
+    - The containerized web application in GKE is assigned a cluster-wide Kubernetes admin role.
 
-CI/CD Pipelines (DevSecOps)
+    - CI/CD Pipelines (DevSecOps)
 
 This repository utilizes GitHub Actions to automate the deployment process, divided into two distinct pipelines:
 
