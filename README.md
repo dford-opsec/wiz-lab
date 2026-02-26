@@ -10,8 +10,41 @@ Architecture
 
 The environment consists of a public-facing GCP Cloud Load Balancer routing traffic to a Go-based web application running on a private Google Kubernetes Engine (GKE) cluster. The application connects to a MongoDB database hosted on a standalone Compute Engine VM in a public subnet.
 
-![Architecture Diagram](./diagram.svg)
+```mermaid
+flowchart LR
+    %% Define styles mimicking GCP colors
+    classDef internet fill:#fff,stroke:#4285F4,stroke-width:2px,color:#000
+    classDef lb fill:#e8f0fe,stroke:#4285F4,stroke-width:2px,color:#000
+    classDef gke fill:#e8f0fe,stroke:#4285F4,stroke-width:2px,color:#000
+    classDef vm fill:#fef7e0,stroke:#F4B400,stroke-width:2px,color:#000
+    classDef storage fill:#e8f0fe,stroke:#4285F4,stroke-width:2px,color:#000
+    classDef subnet fill:none,stroke:#9aa0a6,stroke-width:2px,stroke-dasharray:5
 
+    %% Entities
+    Internet(("🌐 Public <br/>Internet")):::internet
+    
+    LB["🖧 GCP Cloud <br/>Load Balancer"]:::lb
+
+    subgraph PrivateSubnet [Private Subnet]
+        direction TB
+        GKE["📦 Google Kubernetes <br/>Engine <br/>(Containerized App)"]:::gke
+    end
+    class PrivateSubnet subnet
+
+    subgraph PublicSubnet [Public Subnet]
+        direction TB
+        VM["💻 Compute Engine VM <br/>(MongoDB 4.4)<br/>Open Port 22"]:::vm
+    end
+    class PublicSubnet subnet
+
+    Bucket[("🗄️ Cloud Storage <br/>Backup Bucket")]:::storage
+
+    %% Relationships
+    Internet -->|"HTTP/HTTPS"| LB
+    LB -->|"Routes Traffic"| GKE
+    GKE -->|"TCP 27017 (Internal)"| VM
+    VM -->|"Automated Script"| Bucket
+```
 
 
 Intentional Security Misconfigurations
