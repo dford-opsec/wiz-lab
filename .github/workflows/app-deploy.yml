@@ -6,9 +6,9 @@ on:
     branches:
       - main
     paths:
-      - [cite_start]'app/**'       # Triggers if any file in the application source folder changes [cite: 59, 79]
-      - [cite_start]'k8s/**'       # Triggers if your Kubernetes manifests are updated [cite: 70, 79]
-      - [cite_start]'.github/workflows/app-deploy.yml' # Triggers if you modify this pipeline itself [cite: 72]
+      - 'app/**'       # Triggers if any file in the application source folder changes [cite: 59, 79]
+      - 'k8s/**'       # Triggers if your Kubernetes manifests are updated [cite: 70, 79]
+      - '.github/workflows/app-deploy.yml' # Triggers if you modify this pipeline itself [cite: 72]
 env:
   # Standard GCR path. If using Artifact Registry, format is: region-docker.pkg.dev/project/repo/image
   IMAGE_NAME: gcr.io/${{ secrets.GCP_PROJECT_ID }}/wiz-webapp:latest 
