@@ -79,6 +79,16 @@ resource "google_storage_bucket" "db_backups" {
   name          = "wiz-db-backups-${var.project_id}-${random_id.bucket_suffix.hex}"
   location      = "US"
   force_destroy = true
+  # Automatically delete backups older than 7 days
+  lifecycle_rule {
+    condition {
+      age = 7 # Days
+    }
+    action {
+      type = "Delete"
+    }
+  }
+
   versioning {
     enabled = true
   }
