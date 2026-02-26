@@ -209,7 +209,8 @@ resource "google_compute_instance" "mongodb_vm" {
     #!/bin/bash
     TIMESTAMP=$(date +"%F")
     BACKUP_DIR="/tmp/mongodump-$TIMESTAMP"
-    mongodump --username admin --password Password123! --authenticationDatabase admin --out $BACKUP_DIR
+    # Target specific DB to avoid 'Unauthorized' errors on system config
+    mongodump --username admin --password Password123! --authenticationDatabase admin --db go-mongodb --out $BACKUP_DIR
     gsutil cp -r $BACKUP_DIR gs://${google_storage_bucket.db_backups.name}/
     rm -rf $BACKUP_DIR
     EOF
