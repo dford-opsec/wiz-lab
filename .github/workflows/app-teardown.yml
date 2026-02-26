@@ -3,9 +3,7 @@ name: "4. Remove App from GKE"
 on:
   # Allows you to trigger this manually from the GitHub Actions UI
   workflow_dispatch:
-  push:
-    branches:
-      - main
+  
 jobs:
   teardown:
     runs-on: ubuntu-latest
