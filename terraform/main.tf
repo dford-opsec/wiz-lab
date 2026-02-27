@@ -79,6 +79,12 @@ resource "google_storage_bucket" "db_backups" {
   name          = "wiz-db-backups-${var.project_id}-${random_id.bucket_suffix.hex}"
   location      = "US"
   force_destroy = true
+  labels = {
+    environment = "production"
+    app         = "mongodb"
+    managed_by  = "terraform"
+    team        = "security-eng"
+  }
   # Automatically delete backups older than 7 days
   lifecycle_rule {
     condition {
