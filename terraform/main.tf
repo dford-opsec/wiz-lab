@@ -242,7 +242,7 @@ if [ -z "$BUCKET_NAME" ]; then
     exit 1
 fi
 
-TIMESTAMP=$(date +"%F")
+TIMESTAMP=$(date +"%F_%H-%M")
 BACKUP_DIR="/tmp/mongodump-$TIMESTAMP"
 ARCHIVE_FILE="/tmp/mongodb-backup-$TIMESTAMP.tar.gz"
 
