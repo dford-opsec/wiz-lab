@@ -71,6 +71,18 @@ resource "google_project_iam_member" "vulnerable_sa_compute_admin" {
   member  = "serviceAccount:${google_service_account.vulnerable_sa.email}"
 }
 
+resource "google_project_iam_member" "vulnerable_sa_compute_admin" {
+  project = trimspace(var.project_id)
+  role    = "roles/storage.objectAdmin"
+  member  = "serviceAccount:${google_service_account.vulnerable_sa.email}"
+}
+
+resource "google_project_iam_member" "vulnerable_sa_compute_admin" {
+  project = trimspace(var.project_id)
+  role    = "roles/storage.admin"
+  member  = "serviceAccount:${google_service_account.vulnerable_sa.email}"
+}
+
 resource "random_id" "bucket_suffix" {
   byte_length = 4
 }
