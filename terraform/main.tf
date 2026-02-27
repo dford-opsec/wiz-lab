@@ -227,8 +227,16 @@ resource "google_compute_instance" "mongodb_vm" {
     
     # 6. Create Admin User
     mongo admin --eval 'db.createUser({user: "admin", pwd: "Password123!", roles: [{role: "userAdminAnyDatabase", db: "admin"}, "readWriteAnyDatabase"]})'
-    
-    # 7. Setup automated backups
+
+    # 7. GCP OpsAgent install
+      #!/bin/bash
+      echo "Installing Google Cloud Ops Agent..."
+      curl -sSO https://dl.google.com/cloudagents/add-google-cloud-ops-agent-repo.sh
+      sudo bash add-google-cloud-ops-agent-repo.sh --also-install
+      systemctl enable google-cloud-ops-agent
+      systemctl start google-cloud-ops-agent
+
+    # 8. Setup automated backups
     cat << 'EOF' > /usr/local/bin/backup_mongo.sh
     #!/bin/bash
 
