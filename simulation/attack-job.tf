@@ -1,3 +1,9 @@
+provider "google" {
+  project = "clgcporg10-181"
+  region  = "us-central1"
+  zone    = "us-central1-a"
+}
+
 # 1. The Serverless Identity (The Attack Vector)
 resource "google_service_account" "attack_sa" {
   account_id   = "wiz-attack-simulation-sa"
