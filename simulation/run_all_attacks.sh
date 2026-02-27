@@ -1,4 +1,5 @@
 #!/bin/bash
+gcloud container clusters get-credentials wiz-cluster --zone us-central1-a --project clgcporg10-181
 
 # --- Color Variables ---
 GREEN='\033[0;32m'
