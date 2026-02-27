@@ -37,6 +37,7 @@ resource "google_cloud_run_v2_job" "attack_simulation" {
 # 3. The Cloud Scheduler (Cron Job)
 resource "google_cloud_scheduler_job" "attack_trigger" {
   name             = "trigger-attack-simulation"
+  project          = "clgcporg10-181"
   description      = "Fires the Cloud Run Job 4 times a day"
   schedule         = "0 0,6,12,18 * * *"
   time_zone        = "UTC"
@@ -44,7 +45,7 @@ resource "google_cloud_scheduler_job" "attack_trigger" {
 
   http_target {
     http_method = "POST"
-    uri         = "https://us-central1-run.googleapis.com/apis/run.googleapis.com/v1/namespaces/<YOUR_PROJECT_ID>/jobs/wiz-attack-simulation-job:run"
+    uri         = "https://us-central1-run.googleapis.com/apis/run.googleapis.com/v1/namespaces/clgcporg10-181/jobs/wiz-attack-simulation-job:run"
     
     oauth_token {
       service_account_email = google_service_account.attack_sa.email
