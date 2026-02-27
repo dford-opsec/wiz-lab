@@ -40,7 +40,7 @@ jobs:
         uses: hashicorp/setup-terraform@v2
 
       - name: Terraform Init & Apply
-        working-directory: ./terraform
+        working-directory: ./simulation
         run: |
           terraform init
           terraform apply -auto-approve
