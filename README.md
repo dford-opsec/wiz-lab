@@ -77,7 +77,7 @@ Includes IaC security scanning prior to apply.
 App Deployment (app-deploy.yml): Builds the Docker container, pushes it to the container registry, and applies the Kubernetes manifests to the GKE cluster.
 
 Repository Structure
-
+'''
 .
 ├── .github/workflows/     # CI/CD pipeline definitions
 ├── terraform/             # IaC for GCP infrastructure provisioning
@@ -85,3 +85,4 @@ Repository Structure
 ├── app/                   # Web application source code and Dockerfile
 ├── scripts/               # Bash scripts (e.g., seed_data.sh for DB population)
 └── README.md              # Project documentation
+'''
