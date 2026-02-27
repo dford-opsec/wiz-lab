@@ -71,25 +71,25 @@ resource "google_project_iam_member" "vulnerable_sa_compute_admin" {
   member  = "serviceAccount:${google_service_account.vulnerable_sa.email}"
 }
 
-resource "google_project_iam_member" "vulnerable_sa_compute_admin" {
+resource "google_project_iam_member" "vulnerable_sa_objectadmin" {
   project = trimspace(var.project_id)
   role    = "roles/storage.objectAdmin"
   member  = "serviceAccount:${google_service_account.vulnerable_sa.email}"
 }
 
-resource "google_project_iam_member" "vulnerable_sa_compute_admin" {
+resource "google_project_iam_member" "vulnerable_sa_storage_admin" {
   project = trimspace(var.project_id)
   role    = "roles/storage.admin"
   member  = "serviceAccount:${google_service_account.vulnerable_sa.email}"
 }
 
-resource "google_project_iam_member" "vulnerable_sa_compute_admin" {
+resource "google_project_iam_member" "vulnerable_sa_logwriter" {
   project = trimspace(var.project_id)
   role    = "roles/logging.logWriter"
   member  = "serviceAccount:${google_service_account.vulnerable_sa.email}"
 }
 
-resource "google_project_iam_member" "vulnerable_sa_compute_admin" {
+resource "google_project_iam_member" "vulnerable_sa_metricwriter" {
   project = trimspace(var.project_id)
   role    = "roles/monitoring.metricWriter"
   member  = "serviceAccount:${google_service_account.vulnerable_sa.email}"
