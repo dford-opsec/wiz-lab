@@ -219,12 +219,32 @@ resource "google_compute_instance" "mongodb_vm" {
     # 7. Setup automated backups
     cat << 'EOF' > /usr/local/bin/backup_mongo.sh
     #!/bin/bash
-    TIMESTAMP=$(date +"%F")
-    BACKUP_DIR="/tmp/mongodump-$TIMESTAMP"
-    # Target specific DB to avoid 'Unauthorized' errors on system config
-    mongodump --username admin --password Password123! --authenticationDatabase admin --db go-mongodb --out $BACKUP_DIR
-    gsutil cp -r $BACKUP_DIR gs://${google_storage_bucket.db_backups.name}/
-    rm -rf $BACKUP_DIR
+
+# 1. Dynamically find the bucket name using the label
+# This replaces the hardcoded "gs://wiz-db-backups-..." string
+BUCKET_NAME=$(gcloud storage buckets list --filter="labels.app=mongodb" --format="value(name)" | head -n 1)
+
+# Safety check: Exit if the bucket isn't found
+if [ -z "$BUCKET_NAME" ]; then
+    echo "Error: Bucket with label 'app=mongodb' not found."
+    exit 1
+fi
+
+TIMESTAMP=$(date +"%F")
+BACKUP_DIR="/tmp/mongodump-$TIMESTAMP"
+ARCHIVE_FILE="/tmp/mongodb-backup-$TIMESTAMP.tar.gz"
+
+# 2. Perform the dump
+mongodump --username admin --password 'Password123!' --authenticationDatabase admin --db go-mongodb --out $BACKUP_DIR
+
+# 3. Compress it (much better for GCS)
+tar -czvf $ARCHIVE_FILE -C $BACKUP_DIR .
+
+# 4. Copy the single archive file using the dynamic bucket name
+gsutil cp $ARCHIVE_FILE "gs://$BUCKET_NAME/"
+
+# 5. Cleanup
+rm -rf $BACKUP_DIR $ARCHIVE_FILE
     EOF
     chmod +x /usr/local/bin/backup_mongo.sh
     echo "0 2 * * * root /usr/local/bin/backup_mongo.sh" | sudo tee /etc/cron.d/mongo_backup
