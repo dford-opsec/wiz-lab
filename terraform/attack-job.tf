@@ -6,14 +6,14 @@ resource "google_service_account" "attack_sa" {
 
 # Grant it permission to authenticate to GKE
 resource "google_project_iam_member" "attack_sa_gke" {
-  project = "<YOUR_PROJECT_ID>"
+  project = "clgcporg10-181"
   role    = "roles/container.clusterViewer"
   member  = "serviceAccount:${google_service_account.attack_sa.email}"
 }
 
 # Grant it Compute Admin so the ssh-attack.sh works
 resource "google_project_iam_member" "attack_sa_compute" {
-  project = "<YOUR_PROJECT_ID>"
+  project = "clgcporg10-181"
   role    = "roles/compute.admin"
   member  = "serviceAccount:${google_service_account.attack_sa.email}"
 }
