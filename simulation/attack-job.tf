@@ -8,6 +8,7 @@ provider "google" {
 resource "google_service_account" "attack_sa" {
   account_id   = "wiz-attack-simulation-sa"
   display_name = "Attack Simulation Cloud Run Identity"
+  project      = "clgcporg10-181" # Added Project
 }
 
 # Grant it permission to authenticate to GKE
@@ -28,6 +29,9 @@ resource "google_project_iam_member" "attack_sa_compute" {
 resource "google_cloud_run_v2_job" "attack_simulation" {
   name     = "wiz-attack-simulation-job"
   location = "us-central1"
+  project      = "clgcporg10-181" # Added Project
+
+  deletion_protection = false
 
   template {
     template {
