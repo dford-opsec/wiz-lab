@@ -30,6 +30,7 @@ jobs:
         run: gcloud auth configure-docker $REGION-docker.pkg.dev
 
       - name: Build and Push Docker Image
+        working-directory: ./simulation
         run: |
           docker build -t $REGION-docker.pkg.dev/$PROJECT_ID/$GAR_REPO/$IMAGE_NAME:latest .
           docker push $REGION-docker.pkg.dev/$PROJECT_ID/$GAR_REPO/$IMAGE_NAME:latest
