@@ -1,7 +1,7 @@
 name: Deploy Attack Simulation
 
 on:
-   workflow_dispatch:
+  workflow_dispatch:
   push:
     branches:
       - main
