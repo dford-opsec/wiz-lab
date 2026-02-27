@@ -1,0 +1,44 @@
+name: Deploy Attack Simulation
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  PROJECT_ID: clgcporg10-181
+  REGION: us-central1
+  GAR_REPO: my-repo
+  IMAGE_NAME: attack-sim
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: '${{ secrets.GCP_CREDENTIALS }}'
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v1
+
+      - name: Configure Docker for Artifact Registry
+        run: gcloud auth configure-docker $REGION-docker.pkg.dev
+
+      - name: Build and Push Docker Image
+        run: |
+          docker build -t $REGION-docker.pkg.dev/$PROJECT_ID/$GAR_REPO/$IMAGE_NAME:latest .
+          docker push $REGION-docker.pkg.dev/$PROJECT_ID/$GAR_REPO/$IMAGE_NAME:latest
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+
+      - name: Terraform Init & Apply
+        working-directory: ./terraform
+        run: |
+          terraform init
+          terraform apply -auto-approve
