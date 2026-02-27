@@ -28,7 +28,7 @@ resource "google_cloud_run_v2_job" "attack_simulation" {
       service_account = google_service_account.attack_sa.email
       containers {
         # This assumes you push the image built in GitHub Actions to Artifact Registry
-        image = "us-central1-docker.pkg.dev/<YOUR_PROJECT_ID>/my-repo/attack-sim:latest"
+        image = "us-central1-docker.pkg.dev/clgcporg10-181/my-repo/attack-sim:latest"
       }
     }
   }
