@@ -1,0 +1,13 @@
+displayName: '[SOC ALERT] SSH Access to MongoDB VM Detected'
+combiner: OR
+conditions:
+- displayName: SSH Login Spike
+  conditionThreshold:
+    aggregations:
+    - alignmentPeriod: 60s
+      crossSeriesReducer: REDUCE_SUM
+      perSeriesAligner: ALIGN_COUNT
+    comparison: COMPARISON_GT
+    duration: 0s
+    filter: metric.type="logging.googleapis.com/user/mongo_vm_ssh_logins" resource.type="gce_instance"
+enabled: true
