@@ -1,0 +1,10 @@
+displayName: '[SOC ALERT] Compute Lateral Movement: VM Mapping Network'
+alertStrategy:
+  notificationRateLimit:
+    period: 300s
+combiner: OR
+conditions:
+- displayName: Log match condition
+  conditionMatchedLog:
+    filter: resource.type="gce_instance" AND protoPayload.methodName="v1.compute.instances.list" AND protoPayload.authenticationInfo.principalEmail=~"mongodb-vulnerable-sa"
+enabled: true
