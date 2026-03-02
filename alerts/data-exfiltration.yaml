@@ -1,0 +1,11 @@
+displayName: '[SOC ALERT] Data Exfiltration: Unauthorized Backup Deletion Attempt'
+alertStrategy:
+  notificationRateLimit:
+    period: 300s
+combiner: OR
+conditions:
+- displayName: Log match condition
+  conditionMatchedLog:
+    filter: resource.type="gcs_bucket" AND protoPayload.methodName="storage.objects.delete" AND protoPayload.status.code=7
+enabled: true
+severity: CRITICAL
