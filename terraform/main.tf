@@ -240,7 +240,15 @@ resource "google_compute_instance" "mongodb_vm" {
     # 6. Create Admin User
     mongo admin --eval 'db.createUser({user: "admin", pwd: "Password123!", roles: [{role: "userAdminAnyDatabase", db: "admin"}, "readWriteAnyDatabase"]})'
 
-    # 7. GCP OpsAgent install
+    #!/bin/bash
+    echo "Starting automated security bootstrapping..."
+
+    # 7. Install Auditd
+    apt-get update && apt-get install auditd -y
+    auditctl -a always,exit -F arch=b64 -S execve -k control_plane_check
+    echo "-a always,exit -F arch=b64 -S execve -k control_plane_check" >> /etc/audit/rules.d/audit.rules
+
+    # 8. GCP OpsAgent install
       #!/bin/bash
       echo "Installing Google Cloud Ops Agent..."
       curl -sSO https://dl.google.com/cloudagents/add-google-cloud-ops-agent-repo.sh
@@ -248,9 +256,56 @@ resource "google_compute_instance" "mongodb_vm" {
       systemctl enable google-cloud-ops-agent
       systemctl start google-cloud-ops-agent
 
-    # 8. Setup automated backups
+    # 9. Write the validated config.yaml directly to the disk
+    cat << 'EOF' > /etc/google-cloud-ops-agent/config.yaml
+    logging:
+      receivers:
+        syslog:
+          type: files
+          include_paths: ["/var/log/auth.log", "/var/log/syslog"]
+        mongodb:
+          type: mongodb
+        auditd:
+          type: files
+          include_paths: ["/var/log/audit/audit.log"]
+      processors:
+        ssh_success:
+          type: parse_regex
+          field: message
+          regex: '^.*sshd\[\d+\]: Accepted.*for (?P<user>\S+) from (?P<host>\S+).*$'
+        ssh_failure:
+          type: parse_regex
+          field: message
+          regex: '^.*sshd\[\d+\]: Failed password for (?P<user>\S+) from (?P<host>\S+).*$'
+      service:
+        pipelines:
+          default_pipeline:
+            receivers: [syslog, mongodb, auditd]
+            processors: [ssh_success, ssh_failure]
+    metrics:
+      receivers:
+        hostmetrics:
+          type: hostmetrics
+          collection_interval: 60s
+        mongodb:
+          type: mongodb
+          collection_interval: 60s
+          insecure: true 
+      service:
+        pipelines:
+          default_pipeline:
+            receivers: [hostmetrics, mongodb]
+    EOF
+
+    # 10. Restart the agent to apply the new config
+    systemctl restart google-cloud-ops-agent
+    echo "Security bootstrapping complete."
+
+    # 11. Setup automated backups
     cat << 'EOF' > /usr/local/bin/backup_mongo.sh
     #!/bin/bash
+
+    
 
 # 1. Dynamically find the bucket name using the label
 # This replaces the hardcoded "gs://wiz-db-backups-..." string
