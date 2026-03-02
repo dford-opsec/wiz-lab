@@ -95,6 +95,19 @@ jobs:
           kubectl apply -f k8s/04-backendconfig.yml
           kubectl apply -f k8s/03-ingress.yml
 
+      - name: Deploy Custom Log-Based Metrics
+        run: |
+          echo "Deploying custom metric: mongo_vm_ssh_logins..."
+          
+          # Creates the log-based metric if it doesn't exist.
+          # The filter looks for successful SSH authentications in syslog.
+          gcloud logging metrics create mongo_vm_ssh_logins \
+            --description="Counts successful SSH logins for the SSH Login Spike alert" \
+            --log-filter='resource.type="gce_instance" AND logName=~"logs/syslog" AND (textPayload=~"sshd.*Accepted" OR jsonPayload.message=~"sshd.*Accepted")' \
+            || echo "⚠️ Metric already exists. Skipping creation."
+            
+          echo "✅ Log-based metrics deployed!"
+
       - name: Deploy Detection as Code (Alert Policies)
         run: |
           echo "Deploying SOC Alerts from the alerts/ directory..."
