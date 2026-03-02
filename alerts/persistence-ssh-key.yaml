@@ -1,0 +1,10 @@
+displayName: '[SOC ALERT] Persistence: Rogue SSH Key Injected into VM Metadata'
+alertStrategy:
+  notificationRateLimit:
+    period: 300s
+combiner: OR
+conditions:
+- displayName: Log match condition
+  conditionMatchedLog:
+    filter: resource.type="gce_instance" AND protoPayload.methodName="v1.compute.instances.setMetadata" AND protoPayload.request.items.key="ssh-keys"
+enabled: true
