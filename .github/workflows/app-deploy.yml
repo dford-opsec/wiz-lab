@@ -94,3 +94,19 @@ jobs:
           kubectl apply -f k8s/02-deployment.yml
           kubectl apply -f k8s/04-backendconfig.yml
           kubectl apply -f k8s/03-ingress.yml
+
+      - name: Deploy Detection as Code (Alert Policies)
+        run: |
+          echo "Deploying SOC Alerts from the alerts/ directory..."
+          
+          # Loop through every YAML file in the alerts folder
+          for policy_file in alerts/*.yaml; do
+            echo "Attempting to deploy: $policy_file"
+            
+            # Create the policy. If it already exists, it prints a message and continues.
+            gcloud monitoring policies create \
+              --policy-from-file="$policy_file" || echo "⚠️ Policy may already exist or have a formatting issue. Skipping..."
+              
+          done
+          
+          echo "✅ All alert policies processed!"
