@@ -1,0 +1,11 @@
+displayName: '[SOC ALERT] K8s Lateral Movement: Unauthorized Secret Scraping'
+alertStrategy:
+  notificationRateLimit:
+    period: 300s
+combiner: OR
+conditions:
+- displayName: Log match condition
+  conditionMatchedLog:
+    filter: resource.type="k8s_cluster" AND protoPayload.methodName="io.k8s.core.v1.secrets.list"
+enabled: true
+severity: CRITICAL
