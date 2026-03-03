@@ -86,10 +86,13 @@ jobs:
           # 2. Use sed to replace the placeholder including the brackets
           sed -i "s|<MONGODB_VM_INTERNAL_IP>|$MONGODB_IP|g" k8s/02-deployment.yml
 
-          # 3. Verify the change (Optional, helpful for debugging)
+          # 3. NEW: Use sed to inject the Secret Key from GitHub Secrets
+          sed -i "s|<APP_SECRET_KEY>|${{ secrets.APP_SECRET_KEY }}|g" k8s/02-deployment.yml
+
+          # 4. Verify the change (Optional, helpful for debugging)
           cat k8s/02-deployment.yml | grep MONGODB_URI
 
-          # 4. ACTUALLY DEPLOY THE FILES
+          # 5. ACTUALLY DEPLOY THE FILES
           kubectl apply -f k8s/01-rbac.yml
           kubectl apply -f k8s/02-deployment.yml
           kubectl apply -f k8s/04-backendconfig.yml
