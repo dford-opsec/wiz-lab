@@ -25,4 +25,4 @@ spec:
         - name: MONGODB_URI # Configures MongoDB access via K8s env var
           value: "mongodb://admin:Password123!@<MONGODB_VM_INTERNAL_IP>:27017/todo?authSource=admin"
         - name: SECRET_KEY  # ADDED from the README
-          value: "UzNjdXJlUEBzc3cwcmQh" # In production this should be a K8s Secret, but plaintext is fine for the demo
+          value: "<APP_SECRET_KEY>"
