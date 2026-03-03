@@ -1,7 +1,6 @@
 variable "project_id" {
   description = "The Google Cloud Project ID provided by CloudLabs"
   type        = string
-  default     = "clgcporg10-181"
 }
 
 variable "region" {
