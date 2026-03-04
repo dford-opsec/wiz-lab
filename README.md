@@ -81,9 +81,11 @@ Repository Structure
 
 .
 ├── .github/workflows/     # CI/CD pipeline definitions
+├── alerts                 # Alerts for GCP 
 ├── terraform/             # IaC for GCP infrastructure provisioning
 ├── k8s/                   # Kubernetes manifests (Deployment, Service, Ingress, BackendConfig)
 ├── app/                   # Web application source code and Dockerfile
 ├── scripts/               # Bash scripts (e.g., seed_data.sh for DB population)
+├── simulation             # Attach simulation scripts
 └── README.md              # Project documentation
 ```
