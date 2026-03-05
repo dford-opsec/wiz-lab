@@ -13,6 +13,5 @@ WORKDIR /app
 RUN echo "Darren Ford" > /wizexercise.txt
 COPY --from=build  /go/src/tasky/tasky .
 COPY --from=build  /go/src/tasky/assets ./assets
-COPY --from=build  /go/src/tasky/views ./views
 EXPOSE 8080
 ENTRYPOINT ["/app/tasky"]
